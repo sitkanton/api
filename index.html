@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>История, Графика и Воркеры</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        #canvas {
+            border: 2px solid #000;
+            margin-top: 20px;
+            background-color: #f0f0f0;
+        }
+        #controls {
+            margin-top: 20px;
+        }
+        #status {
+            margin-top: 10px;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+ 
+    <div id="historyControls">
+        <button onclick="goBack()">Назад</button>
+        <button onclick="goForward()">Вперед</button>
+    </div>
+
+    
+    <h3>Графика и Анимация</h3>
+    <canvas id="canvas" width="500" height="300"></canvas>
+
+ 
+    <div id="workerControls">
+        <h3>Вычисления через веб-воркер</h3>
+        <input type="number" id="workerInput" placeholder="Введите число" />
+        <button onclick="startWorker()">Запустить вычисления</button>
+        <div id="workerOutput"></div>
+    </div>
+
+  
+    <div id="status"></div>
+</div>
+
+<script>
+
+    function goBack() {
+        window.history.back();
+    }
+
+    function goForward() {
+        window.history.forward();
+    }
+
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    let x = 0;
+    let direction = 1;
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height); 
+        ctx.beginPath();
+        ctx.arc(x, 150, 20, 0, Math.PI * 2, false); 
+        ctx.fillStyle = 'blue';
+        ctx.fill();
+        x += direction * 2;
+        if (x >= canvas.width || x <= 0) direction *= -1; 
+        requestAnimationFrame(draw);
+    }
+
+    draw(); 
+
+   
+    const workerOutput = document.getElementById("workerOutput");
+
+    function startWorker() {
+        const input = document.getElementById("workerInput").value;
+        if (input) {
+            const worker = new Worker(URL.createObjectURL(new Blob([`
+                onmessage = function(e) {
+                    let result = 0;
+                    let number = e.data;
+                    for (let i = 0; i <= number; i++) {
+                        result += i; // Простое вычисление суммы
+                    }
+                    postMessage(result);
+                }
+            `], { type: 'application/javascript' })));
+
+            worker.onmessage = function(e) {
+                workerOutput.innerHTML = Результат: ${e.data};
+            };
+
+            worker.onerror = function(error) {
+                workerOutput.innerHTML = Ошибка: ${error.message};
+            };
+
+            worker.postMessage(input);
+            document.getElementById("status").textContent = "Вычисления выполняются...";
+        } else {
+            workerOutput.innerHTML = "Введите число для вычислений.";
+        }
+    }
+
+</script>
+
+</body>
+</html>
