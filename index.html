@@ -100,11 +100,11 @@
             `], { type: 'application/javascript' })));
 
             worker.onmessage = function(e) {
-                workerOutput.innerHTML = Результат: ${e.data};
+                workerOutput.innerHTML = `Результат: ${e.data}`;
             };
 
             worker.onerror = function(error) {
-                workerOutput.innerHTML = Ошибка: ${error.message};
+                workerOutput.innerHTML =` Ошибка: ${error.message}`;
             };
 
             worker.postMessage(input);
